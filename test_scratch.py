@@ -7,7 +7,22 @@ import torch
 from data.wrapper import get_loader
 from data.augmentation import NUM_CLASSES
 from algorithms.wrapper import get_algorithm
+import os
+
+def save_results(args, acc_dict):
+    os.makedirs(args.log_dir, exist_ok=True)
     
+    filename = f"test_scratch_results_{args.source_data_name}_{args.target_data_name}_{args.test_model}.txt"
+    log_file = os.path.join(args.log_dir, filename)
+
+    with open(log_file, "w") as f:
+        for data_name, acc_list in acc_dict.items():
+            mean_acc = np.mean(acc_list)
+            std_acc = np.std(acc_list)
+            f.write(f"{data_name}, mean: {mean_acc}, std: {std_acc}\n")
+
+    print(f"Results saved to {log_file}")
+
 def main(args):
     device = torch.device(f"cuda:{args.gpu_id}")
     torch.cuda.set_device(device)
@@ -57,6 +72,8 @@ def main(args):
     for data_name in data_name_list:
         print(f"{data_name}, mean: {np.mean(acc_dict[data_name])}, std: {np.std(acc_dict[data_name])}")
 
+    save_results(args, acc_dict)
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parameter Processing')
 
@@ -68,7 +85,7 @@ if __name__ == '__main__':
     parser.add_argument('--target_data_name', type=str, default="full")
 
     # dir
-    parser.add_argument('--data_dir', type=str, default="../evaluation_seanie/datasets")
+    parser.add_argument('--data_dir', type=str, default="./datasets") #default="../evaluation_seanie/datasets"
     parser.add_argument('--synthetic_data_dir', type=str, default="./synthetic_data")
     parser.add_argument('--log_dir', type=str, default="./test_log")
 

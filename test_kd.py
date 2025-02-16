@@ -9,6 +9,20 @@ from data.augmentation import NUM_CLASSES, ParamDiffAug
 from data.wrapper import get_loader
 from models.wrapper import get_model
 
+import os
+
+def save_results(args, acc_list):
+    os.makedirs(args.log_dir, exist_ok=True)
+    
+    filename = f"test_kd_results_{args.source_data_name}_{args.method}_{args.test_model}.txt"
+    log_file = os.path.join(args.log_dir, filename)
+
+    with open(log_file, "w") as f:
+        mean_acc = np.mean(acc_list)
+        std_acc = np.std(acc_list)
+        f.write(f"CIFAR10, mean: {mean_acc}, std: {std_acc}\n")
+    
+    print(f"Results saved to {log_file}")
 
 def main(args):
     device = torch.device(f"cuda:{args.gpu_id}")
@@ -89,6 +103,8 @@ def main(args):
         acc_list.append(acc)
 
     print(f"{data_name}, mean: {np.mean(acc_list)}, std: {np.std(acc_list)}")
+    save_results(args, acc_list)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Parameter Processing')
